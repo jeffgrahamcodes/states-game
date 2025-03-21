@@ -2,28 +2,38 @@
 import turtle
 import pandas as pd
 
-from cursor import Cursor
-
 screen = turtle.Screen()
 screen.title("U.S. States Game")
 image = "blank_states_img.gif"
 screen.addshape(image)
 turtle.shape(image)
 
-cursor = Cursor()
+df = pd.read_csv("50_states.csv")
+all_states = df["state"].to_list()
+guessed_states = []
 
-df= pd.read_csv("50_states.csv")
-states_list = df["state"].to_list()
+while len(guessed_states) < 50:
+    answer_state = screen.textinput(f"{len(guessed_states)}/50 States Correct", "Name another state").title()
 
-guess = screen.textinput("Guess the State", "Name another state")
-formatted_guess = guess.title()
+    if answer_state == "Exit":
+        break
 
-if formatted_guess in states_list:
-    coordinates = df[df["state"] == formatted_guess]
-    x = coordinates.x.to_list()[0]
-    y = coordinates.y.to_list()[0]
+    if answer_state in all_states:
+        guessed_states.append(answer_state)
+        t = turtle.Turtle()
+        t.hideturtle()
+        t.penup()
+        state_data = df[df.state == answer_state]
+        t.goto(state_data.x.item(), state_data.y.item())
+        t.write(answer_state)
 
-    cursor.move_to(x,y)
-    cursor.write_state(formatted_guess)
 
-screen.exitonclick()
+missed_states = {"state": []}
+for state in all_states:
+    if state not in guessed_states:
+        missed_states["state"].append(state)
+
+missed_states_df = pd.DataFrame(missed_states)
+missed_states_df.to_csv("states_to_learn.csv")
+
+
